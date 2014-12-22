@@ -34,13 +34,19 @@ def show_countries():
 def find_nearest():
     lat = float(request.args.get('latitude'))
     lng = float(request.args.get('longitude'))
+    sorttype = request.args.get('sort') or 'nearest'
     bboxsize = request.args.get('size') or geonames.DEFAULT_BBOX_SIZE
     bboxsize = int(bboxsize)
     results = request.args.get('num') or 1
     results = int(results)
     bbox = geonames.make_bounding_box(bboxsize, lat, lng)
     cityids = CITYINDEX.nearest(bbox, results, objects = False)
-    nearest_cities = [CITYDATA[str(cityid)] for cityid in cityids]
+    nearest_cities = list([CITYDATA[str(cityid)] for cityid in cityids])
+    sortf = {
+        'nearest' : lambda city : geonames.city_distance(lat, lng, city),
+        'population' : lambda city : int(city['population'])
+    }[sorttype]
+    nearest_cities = sorted(nearest_cities, key = sortf)
     return Response(json.dumps([len(nearest_cities)] + nearest_cities),  mimetype='application/json')
 
 @app.route('/intersection')

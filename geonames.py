@@ -1,5 +1,6 @@
 from rtree import index
 import decimal
+import math
 # getting all data from geonames
 COUNTRYINFO = "/home/dancluna/code/python/dimagi/lastround/geonames-data/countryInfoPP.txt"
 
@@ -67,3 +68,12 @@ def index_cities(citydata, bbox_size = DEFAULT_BBOX_SIZE):
         geoid = city['geonameid']
         sptidx.insert(int(geoid), bbox)
     return sptidx
+
+def city_distance(lat, lng, city): # not the best metric but it'll do to sort...
+    """Euclidean distance between a city and a pair of lat/lng"""
+    return math.sqrt((lat - float(city['latitude'])) ** 2 + (lng - float(city['longitude'])) ** 2)
+
+# city = CITYDATA.values()[0]
+
+# print city_distance(0, 0, city)
+        
