@@ -56,7 +56,7 @@ def load_city_data():
 # COUNTRYDATA = load_country_data()
 # CITYDATA = load_city_data()
 
-DEFAULT_BBOX_SIZE = 10
+DEFAULT_BBOX_SIZE = 0
 
 def index_cities(citydata, bbox_size = DEFAULT_BBOX_SIZE):
     sptidx = index.Index()
