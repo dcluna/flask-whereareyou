@@ -1,0 +1,25 @@
+* Where Are You?
+This is a Flask mini-app to play with geolocation data and to learn more about web dev in Python.
+All city data comes from [[http://download.geonames.org/export/dump/][GeoNames]] dump data.
+To run, type in the app directory:
+ #+BEGIN_SRC bash
+ python app.py
+ #+END_SRC
+- Available routes:
+  - /cities:
+    Shows all cities loaded from the database.
+  - /countries
+    Shows all countries loaded from the database.
+  - /nearest.json
+    Shows nearest cities to a latitude/longitude pair, in JSON format.
+  - index
+    Shows a map with the nearest cities, given latitude and longitude parameters.
+- Required parameters:
+  latitude, longitude: I hope they're self-explanatory :)
+- Optional parameters:
+  - sort
+    Accepts a value of 'nearest' (default) or 'population'. Sorts the cities by "nearness" or population size.
+  - size
+    Size of the bounding box used to search nearest cities.
+  - num
+    Maximum number of cities retrieved.
