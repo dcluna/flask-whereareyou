@@ -1,7 +1,8 @@
 import sqlite3
 import geonames
+import json
 from flask import Flask, request, session, g, redirect, url_for, \
-     abort, render_template, flash, jsonify
+     abort, render_template, flash, jsonify, Response
 
 # configuration
 DATABASE = '/tmp/dimagi.db'
@@ -15,6 +16,7 @@ def connect_db():
 
 COUNTRYDATA = geonames.load_country_data()
 CITYDATA = geonames.load_city_data()
+CITYINDEX = geonames.index_cities(CITYDATA)
 
 # create our little application :)
 app = Flask(__name__)
@@ -27,6 +29,21 @@ def show_cities():
 @app.route('/countries')
 def show_countries():
     return jsonify(**COUNTRYDATA)
+
+@app.route('/nearest')
+def find_nearest():
+    lat = float(request.args.get('latitude'))
+    lng = float(request.args.get('longitude'))
+    bboxsize = request.args.get('size') or geonames.DEFAULT_BBOX_SIZE
+    bboxsize = int(bboxsize)
+    results = request.args.get('num') or 1
+    results = int(results)
+    bbox = geonames.make_bounding_box(bboxsize, lat, lng)
+    cityids = CITYINDEX.nearest(bbox, results, objects = False)
+    nearest_cities = [CITYDATA[str(cityid)] for cityid in cityids]
+    return Response(json.dumps([len(nearest_cities)] + nearest_cities),  mimetype='application/json')
+    # return jsonify(**[CITYDATA[str(cityid)] for cityid in cityids])
+   
 
 if __name__ == '__main__':
     app.run()
