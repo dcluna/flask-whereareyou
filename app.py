@@ -3,6 +3,8 @@ import geonames
 import json
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash, jsonify, Response
+from flask.ext.googlemaps import GoogleMaps
+from flask.ext.googlemaps import Map
 
 # configuration
 DATABASE = '/tmp/dimagi.db'
@@ -21,6 +23,7 @@ CITYINDEX = geonames.index_cities(CITYDATA)
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
+GoogleMaps(app)
 
 @app.route('/cities')
 def show_cities():
@@ -30,8 +33,7 @@ def show_cities():
 def show_countries():
     return jsonify(**COUNTRYDATA)
 
-@app.route('/nearest.json')
-def find_nearest():
+def get_nearest_cities(request):
     lat = float(request.args.get('latitude'))
     lng = float(request.args.get('longitude'))
     sorttype = request.args.get('sort') or 'nearest'
@@ -51,7 +53,25 @@ def find_nearest():
         'population' : lambda city : int(city['population'])
     }[sorttype]
     nearest_cities = sorted(nearest_cities, key = sortf)
+    return nearest_cities
+
+@app.route('/nearest.json')
+def find_nearest():
+    nearest_cities = get_nearest_cities(request)
     return Response(json.dumps([len(nearest_cities)] + nearest_cities),  mimetype='application/json')
+
+@app.route('/')
+def show_nearest():
+    nearest_cities = get_nearest_cities(request)
+    cities = Map(
+        identifier="nearest-cities",
+        lat=float(request.args.get('latitude')),
+        lng=float(request.args.get('longitude')),
+        markers=[geonames.city_coords(city) for city in nearest_cities]
+    )
+    return render_template('map.html', cities=cities)
+
+
 
 if __name__ == '__main__':
     app.run()

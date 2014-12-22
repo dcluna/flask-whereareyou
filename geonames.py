@@ -73,6 +73,10 @@ def city_distance(lat, lng, city): # not the best metric but it'll do to sort...
     """Euclidean distance between a city and a pair of lat/lng"""
     return math.sqrt((lat - float(city['latitude'])) ** 2 + (lng - float(city['longitude'])) ** 2)
 
+def city_coords(city):
+    """Returns the given city's latitude and longitude as a tuple"""
+    return (float(city['latitude']), float(city['longitude']))
+
 # city = CITYDATA.values()[0]
 
 # print city_distance(0, 0, city)
