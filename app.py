@@ -64,12 +64,12 @@ def find_nearest():
 def show_nearest():
     nearest_cities = get_nearest_cities(request)
     cities = Map(
-        identifier="nearest-cities",
+        identifier="cities",
         lat=float(request.args.get('latitude')),
         lng=float(request.args.get('longitude')),
         markers=[geonames.city_coords(city) for city in nearest_cities]
     )
-    return render_template('map.html', cities=cities)
+    return render_template('layout.html', cities=cities)
 
 
 
