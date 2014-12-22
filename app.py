@@ -30,7 +30,7 @@ def show_cities():
 def show_countries():
     return jsonify(**COUNTRYDATA)
 
-@app.route('/nearest')
+@app.route('/nearest.json')
 def find_nearest():
     lat = float(request.args.get('latitude'))
     lng = float(request.args.get('longitude'))
@@ -39,8 +39,12 @@ def find_nearest():
     bboxsize = int(bboxsize)
     results = request.args.get('num') or 1
     results = int(results)
+    querymethod = request.args.get('method') or 'nearest'
     bbox = geonames.make_bounding_box(bboxsize, lat, lng)
-    cityids = CITYINDEX.nearest(bbox, results, objects = False)
+    if querymethod == 'nearest':
+        cityids = CITYINDEX.nearest(bbox, results, objects = False)
+    elif querymethod == 'intersection':
+        cityids = CITYINDEX.intersection(bbox)
     nearest_cities = list([CITYDATA[str(cityid)] for cityid in cityids])
     sortf = {
         'nearest' : lambda city : geonames.city_distance(lat, lng, city),
@@ -48,19 +52,6 @@ def find_nearest():
     }[sorttype]
     nearest_cities = sorted(nearest_cities, key = sortf)
     return Response(json.dumps([len(nearest_cities)] + nearest_cities),  mimetype='application/json')
-
-@app.route('/intersection')
-def find_intersection():
-    lat = float(request.args.get('latitude'))
-    lng = float(request.args.get('longitude'))
-    bboxsize = request.args.get('size') or geonames.DEFAULT_BBOX_SIZE
-    bboxsize = int(bboxsize)
-    results = request.args.get('num') or 1
-    results = int(results)
-    bbox = geonames.make_bounding_box(bboxsize, lat, lng)
-    cityids = CITYINDEX.intersection(bbox)
-    intersection_cities = [CITYDATA[str(cityid)] for cityid in cityids]
-    return Response(json.dumps([len(intersection_cities)] + intersection_cities),  mimetype='application/json')
 
 if __name__ == '__main__':
     app.run()
