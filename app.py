@@ -52,8 +52,8 @@ def get_nearest_cities(request):
         'nearest' : lambda city : geonames.city_distance(lat, lng, city),
         'population' : lambda city : int(city['population'])
     }[sorttype]
-    nearest_cities = sorted(nearest_cities, key = sortf)
-    return nearest_cities
+    nearest_cities = sorted(nearest_cities, key = sortf, reverse=True)
+    return nearest_cities[0:results]
 
 @app.route('/nearest.json')
 def find_nearest():
