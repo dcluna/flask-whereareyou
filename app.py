@@ -42,8 +42,19 @@ def find_nearest():
     cityids = CITYINDEX.nearest(bbox, results, objects = False)
     nearest_cities = [CITYDATA[str(cityid)] for cityid in cityids]
     return Response(json.dumps([len(nearest_cities)] + nearest_cities),  mimetype='application/json')
-    # return jsonify(**[CITYDATA[str(cityid)] for cityid in cityids])
-   
+
+@app.route('/intersection')
+def find_intersection():
+    lat = float(request.args.get('latitude'))
+    lng = float(request.args.get('longitude'))
+    bboxsize = request.args.get('size') or geonames.DEFAULT_BBOX_SIZE
+    bboxsize = int(bboxsize)
+    results = request.args.get('num') or 1
+    results = int(results)
+    bbox = geonames.make_bounding_box(bboxsize, lat, lng)
+    cityids = CITYINDEX.intersection(bbox)
+    intersection_cities = [CITYDATA[str(cityid)] for cityid in cityids]
+    return Response(json.dumps([len(intersection_cities)] + intersection_cities),  mimetype='application/json')
 
 if __name__ == '__main__':
     app.run()
