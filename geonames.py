@@ -1,22 +1,18 @@
 from rtree import index
+import decimal
 # getting all data from geonames
 COUNTRYINFO = "/home/dancluna/code/python/dimagi/lastround/geonames-data/countryInfoPP.txt"
 
 COUNTRYHEADERS = ["ISO","ISO3","ISO-Numeric","fips","Country","Capital","Area(in sq km)","Population","Continent","tld","CurrencyCode","CurrencyName","Phone","Postal Code Format","Postal Code Regex","Languages","geonameid","neighbours","EquivalentFipsCode"]
 
-def load_data_file(filename, headers, indexkey='geonameid', fnwithdict = None, linelimit = None):
+def load_data_file(filename, headers, indexkey='geonameid', spatialindex = None):
     filedata = {}
-    lines = 0
     for line in open(filename):
         split = line.rstrip('\n').split('\t')
         assert len(headers) == len(split)
         filedict = dict(zip(headers, split))
         filedata[filedict[indexkey]] = filedict
-        lines += 1
-        if fnwithdict:
-            fnwithdict(filedict)
-        if linelimit and lines >= linelimit:
-            break
+        assert spatialindex is None or spatialindex is index.Index
     return filedata
 
 def load_country_data():
@@ -51,12 +47,23 @@ CITYHEADERS = ["geonameid","name","asciiname","alternatenames","latitude","longi
 
 def make_bounding_box(s, centerx=0, centery=0):
     """Makes a bounding box with the given coordinates"""
-    # result must be in the form: (xmin, xmax, ymin, ymax)
-    return (centerx - s, centerx + s, centery - s, centery + s)
+    # result must be in the form: (left, bottom, right, top)
+    return [ centerx - s/2, centery - s/2, centerx + s/2, centery + s/2 ]
 
 def load_city_data():
-    sptidx = index.Index()
     return load_data_file(CITYINFO, CITYHEADERS)
 
 # COUNTRYDATA = load_country_data()
-CITYDATA, spatialindex = load_city_data()
+# CITYDATA = load_city_data()
+
+DEFAULT_BBOX_SIZE = 10
+
+def index_cities(citydata, bbox_size = DEFAULT_BBOX_SIZE):
+    sptidx = index.Index()
+    for city in citydata.values():
+        lat = float(city['latitude'])
+        lng = float(city['longitude'])
+        bbox = make_bounding_box(bbox_size, lat, lng)
+        geoid = city['geonameid']
+        sptidx.insert(int(geoid), bbox)
+    return sptidx
