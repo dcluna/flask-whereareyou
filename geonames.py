@@ -1,15 +1,22 @@
+from rtree import index
 # getting all data from geonames
 COUNTRYINFO = "/home/dancluna/code/python/dimagi/lastround/geonames-data/countryInfoPP.txt"
 
 COUNTRYHEADERS = ["ISO","ISO3","ISO-Numeric","fips","Country","Capital","Area(in sq km)","Population","Continent","tld","CurrencyCode","CurrencyName","Phone","Postal Code Format","Postal Code Regex","Languages","geonameid","neighbours","EquivalentFipsCode"]
 
-def load_data_file(filename, headers, indexkey='geonameid'):
+def load_data_file(filename, headers, indexkey='geonameid', fnwithdict = None, linelimit = None):
     filedata = {}
+    lines = 0
     for line in open(filename):
         split = line.rstrip('\n').split('\t')
         assert len(headers) == len(split)
         filedict = dict(zip(headers, split))
         filedata[filedict[indexkey]] = filedict
+        lines += 1
+        if fnwithdict:
+            fnwithdict(filedict)
+        if linelimit and lines >= linelimit:
+            break
     return filedata
 
 def load_country_data():
@@ -42,5 +49,14 @@ CITYINFO = "/home/dancluna/code/python/dimagi/lastround/geonames-data/cities1500
 
 CITYHEADERS = ["geonameid","name","asciiname","alternatenames","latitude","longitude","feature class","feature code","country code","cc2","admin1 code","admin2 code","admin3 code","admin4 code","population","elevation","dem","timezone","modification date"]
 
+def make_bounding_box(s, centerx=0, centery=0):
+    """Makes a bounding box with the given coordinates"""
+    # result must be in the form: (xmin, xmax, ymin, ymax)
+    return (centerx - s, centerx + s, centery - s, centery + s)
+
 def load_city_data():
+    sptidx = index.Index()
     return load_data_file(CITYINFO, CITYHEADERS)
+
+# COUNTRYDATA = load_country_data()
+CITYDATA, spatialindex = load_city_data()
